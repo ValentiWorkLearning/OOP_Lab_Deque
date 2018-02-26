@@ -120,6 +120,60 @@ DECLARE_OOP_TEST(push_test_7)
     assert(d1.size() == 0);
 }
 
+DECLARE_OOP_TEST(push_test_8)
+{
+    Deque<int> d1;
+
+    d1.pushFront(1);
+    d1.pushFront(2);
+    d1.popBack();
+    d1.popBack();
+
+    assert(d1.size() == 0);
+}
+
+DECLARE_OOP_TEST(push_test_9)
+{
+    Deque<int> d1;
+
+    d1.pushBack(1);
+    d1.pushBack(1);
+    d1.pushFront(2);
+    d1.popBack();
+    d1.popBack();
+    d1.popBack();
+    assert(d1.size() == 0);
+}
+
+DECLARE_OOP_TEST(push_test_10)
+{
+    Deque<int> d1;
+
+    d1.pushBack(1);
+    d1.pushBack(1);
+    d1.pushBack(1);
+    d1.pushBack(1);
+    d1.popBack();
+    d1.popBack();
+    d1.popBack();
+    assert(d1.size() == 1);
+}
+
+DECLARE_OOP_TEST(push_test_11)
+{
+    Deque<int> d1;
+
+    d1.pushBack(1);
+    d1.pushFront(1);
+    d1.pushBack(1);
+    d1.pushFront(1);
+    d1.popBack();
+    d1.popFront();
+    d1.popBack();
+    assert(d1.size() == 1);
+}
+
+
 
 
 /*****************************************************************************/

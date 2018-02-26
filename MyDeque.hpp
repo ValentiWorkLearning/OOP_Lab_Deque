@@ -10,12 +10,12 @@ class Deque
 {
 public:
     Deque();
-    
-    Deque( size_t _size, T _fillValue );
+
+    Deque(size_t _size, T _fillValue);
 
     template <typename U>
-    Deque( std::initializer_list<U> _list );
-    
+    Deque(std::initializer_list<U> _list);
+
     ~Deque() = default;
 
 
@@ -40,16 +40,16 @@ private:
     *****************|m_backBlockIndex-> [6][5][4][3][ ][ ][ ][ ]
     ***********************************************|m_backInternalIndex
     */
-    
+
     size_t m_directorySize;
 
     static constexpr  int m_blockSize = 4;
-    
+
     size_t m_frontBlockIndex, m_backBlockIndex;
 
     int m_frontInternalIndex, m_backInternalIndex;
 
-    enum class RequestType:bool {Front, Back};
+    enum class RequestType :bool { Front, Back };
 
     using BlockType = std::array<T, m_blockSize>;
 
@@ -63,14 +63,14 @@ private:
 
     //Memory work
 
-    void requestMemory( size_t  _amount , RequestType _request);
+    void requestMemory(size_t  _amount, RequestType _request);
 
     bool isOneElementInDeque();
 
     void resetIndexes();
     //Back work
     size_t getBackIndexInBlock(); //return valid position for push element;
-    
+
     void expandBack();
 
     void incInternalBack();
@@ -102,14 +102,14 @@ Deque<T>::Deque()
 
     m_frontInternalIndex = m_blockSize;
     m_backInternalIndex = -1;
- 
+
     m_directorySize = 0;
 }
 
 template<typename T>
 inline Deque<T>::Deque(size_t _size, T _fillValue)
 {
-    for (size_t i = 0; i < _size; i++) 
+    for (size_t i = 0; i < _size; i++)
     {
         pushBack(_fillValue);
     }
@@ -141,7 +141,7 @@ inline void Deque<T>::pushFront(const T & _t)
     incInternalFront();
     requestMemory(1, Deque<T>::RequestType::Front);
     getFrontValidBlock()[getFrontIndexInBlock()] = _t;
-    
+
 }
 
 template<typename T>
@@ -155,9 +155,8 @@ inline void Deque<T>::popBack()
 template<typename T>
 inline void Deque<T>::popFront()
 {
-  
-    getFrontValidBlock()[getFrontIndexInBlock()] = 0;
 
+    getFrontValidBlock()[getFrontIndexInBlock()] = 0;
     decInternalFront();
 }
 
@@ -178,14 +177,14 @@ inline size_t Deque<T>::size()
 {
     size_t dequeSize{};
 
-    if (m_directorySize == 0) 
+    if (m_directorySize == 0)
     {
         return 0;
     }
 
-    if (m_backBlockIndex == m_frontBlockIndex) 
+    if (m_backBlockIndex == m_frontBlockIndex)
     {
-        if (isOneElementInDeque()) 
+        if (isOneElementInDeque())
         {
             return 1;
         }
@@ -198,15 +197,15 @@ inline size_t Deque<T>::size()
     //m_frontBlockIndex ->[*][*][1][2]
     //m_backBlockIndex -> [2][4][5][*]
     //                           |<-backInternalIndex
-    if ((m_backBlockIndex - m_frontBlockIndex) == 1) 
+    if ((m_backBlockIndex - m_frontBlockIndex) == 1)
     {
-        dequeSize = (m_blockSize - m_frontInternalIndex) + (m_backInternalIndex+1);
+        dequeSize = (m_blockSize - m_frontInternalIndex) + (m_backInternalIndex + 1);
     }
-    else 
+    else
     {
-        dequeSize = (m_blockSize - m_frontInternalIndex) + (m_backInternalIndex + 1) + (m_backBlockIndex  - m_frontBlockIndex - 1)*m_blockSize;
+        dequeSize = (m_blockSize - m_frontInternalIndex) + (m_backInternalIndex + 1) + (m_backBlockIndex - m_frontBlockIndex - 1)*m_blockSize;
     }
-    
+
     return dequeSize;
 }
 
@@ -254,10 +253,10 @@ inline void Deque<T>::requestMemory(size_t _amount, RequestType _request)
 
     if (_request == Deque::RequestType::Front)
     {
-        if (m_frontInternalIndex == -1) 
+        if (m_frontInternalIndex == -1)
         {
             incFrontBlockIndex();
-            if (m_frontBlockIndex == -1) 
+            if (m_frontBlockIndex == -1)
             {
                 expandFront();
             }
@@ -269,7 +268,7 @@ inline void Deque<T>::requestMemory(size_t _amount, RequestType _request)
 template<typename T>
 inline bool Deque<T>::isOneElementInDeque()
 {
-    if (m_backBlockIndex == m_frontBlockIndex) 
+    if (m_backBlockIndex == m_frontBlockIndex)
     {
         return m_backInternalIndex == m_frontInternalIndex;
     }
@@ -280,13 +279,17 @@ template<typename T>
 inline void Deque<T>::resetIndexes()
 {
     m_backInternalIndex = -1;
-    m_frontInternalIndex = 16;
+    m_frontInternalIndex = m_blockSize;
     m_backBlockIndex++;
 }
 
 template<typename T>
 inline size_t Deque<T>::getBackIndexInBlock()
 {
+    if (m_backInternalIndex == -1) 
+    {
+        decInternalBack();
+    }
     return m_backInternalIndex;
 }
 
@@ -318,25 +321,25 @@ inline void Deque<T>::incBackBlockIndex()
 template<typename T>
 inline void Deque<T>::decInternalBack()
 {
-    if (isOneElementInDeque()) 
+    if (isOneElementInDeque())
     {
         resetIndexes();
         return;
     }
 
-    m_backInternalIndex--;
- 
-    if (m_backInternalIndex == -1) 
+    if (m_backInternalIndex == -1)
     {
         m_backInternalIndex = m_blockSize - 1;
         m_backBlockIndex--;
+        return;
     }
+    m_backInternalIndex--;
 }
 
 template<typename T>
 inline size_t Deque<T>::getFrontIndexInBlock()
 {
-    if (m_frontInternalIndex == m_blockSize) 
+    if (m_frontInternalIndex == m_blockSize)
     {
         m_frontInternalIndex = 0;
         m_frontBlockIndex++;
@@ -350,12 +353,12 @@ inline void Deque<T>::expandFront()
     size_t l_prevSize = m_pDirectory.size();
     size_t realUsed = m_backBlockIndex - m_frontBlockIndex;
 
-    if (getBackIndexInBlock() == m_directorySize) 
+    if (getBackIndexInBlock() == m_directorySize)
     {
         expandBack();
     }
 
-    if (m_backBlockIndex + realUsed <= m_directorySize) 
+    if (m_backBlockIndex + realUsed <= m_directorySize)
     {
         //dosomeShit with copy elements 
     }
@@ -381,17 +384,15 @@ inline void Deque<T>::decInternalFront()
         resetIndexes();
         return;
     }
-
-    m_frontInternalIndex++;
-
-    if (m_frontInternalIndex == m_blockSize) 
+    if (m_frontInternalIndex == m_blockSize)
     {
         m_frontInternalIndex = 0;
         m_frontBlockIndex++;
+        return;
     }
+    m_frontInternalIndex++;
 }
 
 
 #endif // !MY_DEQUE_HPP
-
 
