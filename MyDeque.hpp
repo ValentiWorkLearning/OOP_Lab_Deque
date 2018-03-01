@@ -9,16 +9,39 @@ template<typename T>
 class Deque
 {
 public:
+    template<typename> friend  class Deque;
+
     Deque();
 
-    Deque(size_t _size, T _fillValue);
+    Deque(size_t _size, T _fillValue = {} );
 
     template <typename U>
     Deque(std::initializer_list<U> _list);
 
+    //TODO this method pack
+    template<typename U>
+    Deque(const Deque<U> & _deque);
+    
+    template<typename U>
+    Deque<T> & operator = (const Deque<U> & _deque);
+
+
+    Deque(Deque<T> && _deque);
+
+    Deque<T> & operator = (Deque<T> && _deque);
+
     ~Deque() = default;
 
 
+    T operator [] (ptrdiff_t _index) const ;
+
+    T  & operator [] (ptrdiff_t _index);
+
+    T at(ptrdiff_t _index) const;
+
+    T & at(ptrdiff_t _index);
+    
+    //TODO to this method pack end
     void pushBack(const T &  _t);
 
     void pushFront(const T & _t);
@@ -33,6 +56,11 @@ public:
 
     size_t size();
 
+    bool empty();
+
+    void clear();
+
+
 private:
     /****************************************************|m_frontInternalIndex
     *****************|m_frontBlockIndex->[ ][ ][ ][ ][ ][1][2][3]
@@ -43,13 +71,14 @@ private:
 
     size_t m_directorySize;
 
-    static constexpr  int m_blockSize = 4;
+    static constexpr  size_t m_blockSize = 4;
 
     size_t m_frontBlockIndex, m_backBlockIndex;
 
     int m_frontInternalIndex, m_backInternalIndex;
 
     enum class RequestType :bool { Front, Back };
+
 
     using BlockType = std::array<T, m_blockSize>;
 
@@ -62,6 +91,8 @@ private:
     typename BlockType & getFrontValidBlock();
 
     //Memory work
+
+    void initDeque();
 
     void requestMemory(size_t  _amount, RequestType _request);
 
@@ -93,22 +124,16 @@ private:
 
 };
 
-
 template<typename T>
 Deque<T>::Deque()
 {
-    m_frontBlockIndex = 0;
-    m_backBlockIndex = 1;
-
-    m_frontInternalIndex = m_blockSize;
-    m_backInternalIndex = -1;
-
-    m_directorySize = 0;
+    initDeque();
 }
 
 template<typename T>
-inline Deque<T>::Deque(size_t _size, T _fillValue)
+inline Deque<T>::Deque(size_t _size, T _fillValue = {})
 {
+    initDeque();
     for (size_t i = 0; i < _size; i++)
     {
         pushBack(_fillValue);
@@ -209,6 +234,19 @@ inline size_t Deque<T>::size()
     return dequeSize;
 }
 
+template<typename T>
+inline bool Deque<T>::empty()
+{
+    return size()== 0 ;
+}
+
+template<typename T>
+inline void Deque<T>::clear()
+{
+    initDeque();
+    m_pDirectory.clear();
+}
+
 
 
 //Internal Functions block
@@ -225,6 +263,18 @@ inline typename Deque<T>::BlockType & Deque<T>::getFrontValidBlock()
 }
 
 
+
+template<typename T>
+inline void Deque<T>::initDeque()
+{
+    m_frontBlockIndex = 0;
+    m_backBlockIndex = 1;
+
+    m_frontInternalIndex = m_blockSize;
+    m_backInternalIndex = -1;
+
+    m_directorySize = 0;
+}
 
 //Memory work
 template<typename T>
@@ -259,8 +309,10 @@ inline void Deque<T>::requestMemory(size_t _amount, RequestType _request)
             if (m_frontBlockIndex == -1)
             {
                 expandFront();
+                incFrontBlockIndex();
             }
             m_frontInternalIndex = m_blockSize - 1;
+           
         }
     }
 }
@@ -346,22 +398,22 @@ inline size_t Deque<T>::getFrontIndexInBlock()
     }
     return m_frontInternalIndex;
 }
+//TODO сделать кусок с индексами 
 
 template<typename T>
 inline void Deque<T>::expandFront()
 {
-    size_t l_prevSize = m_pDirectory.size();
-    size_t realUsed = m_backBlockIndex - m_frontBlockIndex;
+   
+   std::vector<BlockType> tempVector;
 
-    if (getBackIndexInBlock() == m_directorySize)
-    {
-        expandBack();
-    }
-
-    if (m_backBlockIndex + realUsed <= m_directorySize)
-    {
-        //dosomeShit with copy elements 
-    }
+   for (size_t i = 0; i <=m_backBlockIndex; i++)
+   {
+        tempVector.push_back(m_pDirectory[i]);
+   }
+   expandBack();
+   m_frontBlockIndex = m_directorySize / 2;
+   m_backBlockIndex = m_frontBlockIndex + tempVector.size() -1;
+   std::copy(tempVector.begin(), tempVector.end(), m_pDirectory.begin() + m_directorySize / 2);
 }
 
 template<typename T>
